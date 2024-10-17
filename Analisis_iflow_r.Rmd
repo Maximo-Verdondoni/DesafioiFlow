@@ -1,0 +1,87 @@
+---
+title: "analisis iflow"
+output: html_document
+date: "2024-10-17"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Carga del CSV
+
+```{r}
+library(tidyverse)
+df <- read_csv('C://Users//anapa//OneDrive//Escritorio//facu//tdii//DesafioiFlow//iFlowDatos_Limpios.csv')
+library(dplyr)
+glimpse(df)
+```
+
+##Creacion de Demora Planificada
+
+```{r}
+mutate(Demora_Planificada = as.numeric(difftime(VisitaHora_Inicio, VisitaPlanificadaHora, units = "mins")))
+df
+```
+
+##Comparacion de las Demoras
+
+```{r}
+# Comparar la demora planificada por cliente
+ggplot(df, aes(x = factor(cliente), y = Demora_Planificada)) +
+  geom_boxplot() +
+  labs(title = "Demora Planificada por Cliente", x = "Cliente", y = "Demora Planificada (minutos)") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+```{r}
+# Distribución de la demora planificada
+ggplot(df, aes(x = Demora_Planificada)) +
+  geom_histogram(bins = 30, fill = "skyblue", color = "black") +
+  labs(title = "Distribución de la Demora Planificada", x = "Demora Planificada (minutos)", y = "Cantidad")
+
+```
+
+```{r}
+# Demora planificada promedio por municipio
+df %>%
+  group_by(municipio) %>%
+  summarize(mean_delay = mean(Demora_Planificada, na.rm = TRUE)) %>%
+  ggplot(aes(x = reorder(municipio, mean_delay), y = mean_delay)) +
+  geom_col(fill = "steelblue") +
+  labs(title = "Demora Planificada Promedio por Municipio", x = "Municipio", y = "Demora Promedio (minutos)") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+```{r}
+# Demora planificada promedio por día de la semana
+df %>%
+  group_by(VisitaPlanificadaDia) %>%
+  summarize(mean_delay = mean(Demora_Planificada, na.rm = TRUE)) %>%
+  ggplot(aes(x = reorder(VisitaPlanificadaDia, mean_delay), y = mean_delay)) +
+  geom_col(fill = "purple") +
+  labs(title = "Demora Planificada Promedio por Día de la Semana", x = "Día de la Semana", y = "Demora Promedio (minutos)")
+
+```
+
+```{r}
+# Demora planificada por hora de la visita planificada (redondeado a la hora más cercana)
+df %>%
+  mutate(Hora = hour(VisitaPlanificadaHora)) %>%
+  group_by(Hora) %>%
+  summarize(mean_delay = mean(Demora_Planificada, na.rm = TRUE)) %>%
+  ggplot(aes(x = Hora, y = mean_delay)) +
+  geom_line(color = "darkgreen") +
+  geom_point(color = "darkgreen") +
+  labs(title = "Demora Planificada Promedio por Hora de Visita Planificada", x = "Hora de Visita Planificada", y = "Demora Promedio (minutos)")
+
+```
+
+```{r}
+# Demora planificada por peso
+ggplot(df, aes(x = Peso, y = Demora_Planificada)) +
+  geom_point(alpha = 0.6) +
+  labs(title = "Demora Planificada por Peso", x = "Peso", y = "Demora Planificada (minutos)")
+
+```
+
