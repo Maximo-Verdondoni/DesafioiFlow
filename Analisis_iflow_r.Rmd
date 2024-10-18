@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(tidyverse)
-df <- read_csv('C://Users//anapa//OneDrive//Escritorio//facu//tdii//DesafioiFlow//iFlowDatos_Limpios.csv')
+df <- read_csv('C://Users//anapa//OneDrive//Escritorio//facu//tdii//DesafioiFlow//iFlowDatos_Limpios.csv') 
 library(dplyr)
 glimpse(df)
 ```
@@ -20,7 +20,7 @@ glimpse(df)
 ## Creacion de Demora Planificada
 
 ```{r}
-mutate(Demora_Planificada = as.numeric(difftime(VisitaHora_Inicio, VisitaPlanificadaHora, units = "mins")))
+mutate(Demora_Planificada = as.numeric(difftime(VisitaHora_Inicio, VisitaPlanificadaHora, units = "mins"))) 
 df
 ```
 
@@ -102,15 +102,18 @@ centro_tortuguitas <- c(lon= -58.72749, lat =-34.45853)
 
 ```{r}
 library(dplyr)
+
+options(osrm.server = "https://router.project-osrm.org/")
+
 # Función corregida con manejo de errores
 get_distance <- function(longitud, latitud, point) {
   # Chequear coordenadas válidas
   if (is.na(longitud) | is.na(latitud)) return(NA)
-  
+
   # Definir origen y destino como data frames con columnas lon y lat
   src <- data.frame(lon = longitud, lat = latitud)
   dst <- data.frame(lon = point["lon"], lat = point["lat"])
-  
+
   # Intentar calcular la distancia usando tryCatch para manejar errores
   result <- tryCatch({
     osrmRoute(src = src, dst = dst)
@@ -118,17 +121,17 @@ get_distance <- function(longitud, latitud, point) {
     message("Error calculating distance: ", e)
     return(NULL)
   })
-  
+
   # Verificar si result es NULL
   if (is.null(result)) return(NA)
-  
+
   # Pasar la distancia a km si se obtiene un resultado válido
   return(result$distance)
 }
 
 
 # Mutate the dataset to add a new column 'Distancia_a_Punto1'
-df <- head(df,5) %>%
+df_distancias <- tail(df,300) %>%
   rowwise() %>%
   mutate(Garin = get_distance(longitud, latitud, centro_garin),
          Pablo_Nogues = get_distance(longitud, latitud, centro_pablo_nogues),
@@ -136,5 +139,63 @@ df <- head(df,5) %>%
   ungroup()
 
 # Check the updated dataframe
-df
+df_distancias
+```
+
+## Calculo centro distribucion mas cercano
+
+```{r}
+df_distancias <- df_distancias %>%
+  mutate(
+    # Calcular la distancia mínima entre los centros
+    Distancia_Minima = pmin(Garin, Pablo_Nogues, Tortuguitas, na.rm = TRUE),
+    
+    # Asignar el nombre del centro de distribución más cercano basado en la distancia mínima
+    Cercano = case_when(
+      Garin == Distancia_Minima ~ "Garin",
+      Pablo_Nogues == Distancia_Minima ~ "Pablo_Nogues",
+      Tortuguitas == Distancia_Minima ~ "Tortuguitas",
+      TRUE ~ NA_character_  # En caso de que haya un problema o NA
+    )
+  )
+
+df_distancias
+```
+```{r}
+
+library(leaflet)
+library(dplyr)
+
+# Crear el mapa usando leaflet
+mapa_leaflet <- leaflet(df_distancias) %>%
+  # Establecer la vista centrada en la provincia de Buenos Aires
+  setView(lng = -58.5, lat = -34.6, zoom = 10) %>%
+  
+  # Añadir el mapa base de OpenStreetMap
+  addTiles() %>%
+  
+  # Añadir los puntos de las direcciones, coloreados por el centro más cercano
+  addCircleMarkers(
+    ~longitud, ~latitud, 
+    color = ~case_when(
+      Cercano == "Garin" ~ "red",
+      Cercano == "Pablo_Nogues" ~ "blue",
+      Cercano == "Tortuguitas" ~ "green"
+    ),
+    radius = 4, fillOpacity = 0.8, stroke = FALSE, 
+    label = ~paste("Centro cercano:", Cercano)  # Etiquetas mostrando el centro más cercano
+  ) %>%
+  
+  # Añadir una leyenda
+  addLegend(
+    "bottomright", 
+    colors = c("red", "blue", "green"), 
+    labels = c("Garin", "Pablo Nogues", "Tortuguitas"), 
+    title = "Centro más cercano"
+  )
+
+# Mostrar el mapa
+mapa_leaflet
+
+
 ```
