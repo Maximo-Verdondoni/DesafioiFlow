@@ -17,14 +17,14 @@ library(dplyr)
 glimpse(df)
 ```
 
-##Creacion de Demora Planificada
+## Creacion de Demora Planificada
 
 ```{r}
 mutate(Demora_Planificada = as.numeric(difftime(VisitaHora_Inicio, VisitaPlanificadaHora, units = "mins")))
 df
 ```
 
-##Comparacion de las Demoras
+## Comparacion de las Demoras
 
 ```{r}
 # Comparar la demora planificada por cliente
@@ -85,3 +85,56 @@ ggplot(df, aes(x = Peso, y = Demora_Planificada)) +
 
 ```
 
+## Distancia a los Centros de Distribucion
+```{r}
+#Instalamos el paquete osrm que nos permitira calculares distncia en base a los modelos de Open Street Map
+
+# install.packages('osrm')
+library(osrm)
+
+#Definimos las coordenadas para cada centro de distribuicion
+
+centro_pablo_nogues <- c(lon = -58.69417, lat=-34.48175)
+centro_garin <- c(lon= -58.72217, lat=-34.42639)
+centro_tortuguitas <- c(lon= -58.72749, lat =-34.45853)
+
+```
+
+```{r}
+library(dplyr)
+# Función corregida con manejo de errores
+get_distance <- function(longitud, latitud, point) {
+  # Chequear coordenadas válidas
+  if (is.na(longitud) | is.na(latitud)) return(NA)
+  
+  # Definir origen y destino como data frames con columnas lon y lat
+  src <- data.frame(lon = longitud, lat = latitud)
+  dst <- data.frame(lon = point["lon"], lat = point["lat"])
+  
+  # Intentar calcular la distancia usando tryCatch para manejar errores
+  result <- tryCatch({
+    osrmRoute(src = src, dst = dst)
+  }, error = function(e) {
+    message("Error calculating distance: ", e)
+    return(NULL)
+  })
+  
+  # Verificar si result es NULL
+  if (is.null(result)) return(NA)
+  
+  # Pasar la distancia a km si se obtiene un resultado válido
+  return(result$distance)
+}
+
+
+# Mutate the dataset to add a new column 'Distancia_a_Punto1'
+df <- head(df,5) %>%
+  rowwise() %>%
+  mutate(Garin = get_distance(longitud, latitud, centro_garin),
+         Pablo_Nogues = get_distance(longitud, latitud, centro_pablo_nogues),
+         Tortuguitas = get_distance(longitud, latitud, centro_tortuguitas)) %>%
+  ungroup()
+
+# Check the updated dataframe
+df
+```
