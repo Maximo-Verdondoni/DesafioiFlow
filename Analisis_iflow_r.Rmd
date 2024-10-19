@@ -196,6 +196,190 @@ mapa_leaflet <- leaflet(df_distancias) %>%
 
 # Mostrar el mapa
 mapa_leaflet
+```
+
+## Analisis primeras entregas del dia
+
+```{r}
+# Obtener las primeras entregas de cada día
+df_primeras_entregas <- df %>%
+  group_by(VisitaPlanificadaFecha) %>%
+  filter(VisitaHora_Inicio == min(VisitaHora_Inicio)) %>%
+  ungroup()
+
+# Ver el nuevo dataset con las primeras entregas
+df_primeras_entregas
+```
+
+```{r}
+# Calcular Distancias y centros mas cercanos
+df_primeras_entregas <- df_primeras_entregas %>%
+  rowwise() %>%
+  mutate(Garin = get_distance(longitud, latitud, centro_garin),
+         Pablo_Nogues = get_distance(longitud, latitud, centro_pablo_nogues),
+         Tortuguitas = get_distance(longitud, latitud, centro_tortuguitas)) %>%
+  ungroup()
 
 
+df_primeras_entregas <- df_primeras_entregas %>%
+  mutate(
+    # Calcular la distancia mínima entre los centros
+    Distancia_Minima = pmin(Garin, Pablo_Nogues, Tortuguitas, na.rm = TRUE),
+    
+    # Asignar el nombre del centro de distribución más cercano basado en la distancia mínima
+    Cercano = case_when(
+      Garin == Distancia_Minima ~ "Garin",
+      Pablo_Nogues == Distancia_Minima ~ "Pablo_Nogues",
+      Tortuguitas == Distancia_Minima ~ "Tortuguitas",
+      TRUE ~ NA_character_  # En caso de que haya un problema o NA
+    )
+  )
+
+
+df_primeras_entregas
+```
+
+#Graficamos las primeras entregas en relacion a su centro mas cercano
+
+```{r}
+
+# Crear el mapa usando leaflet
+mapa_primeras <- leaflet(df_primeras_entregas) %>%
+  # Establecer la vista centrada en la provincia de Buenos Aires
+  setView(lng = -58.5, lat = -34.6, zoom = 10) %>%
+  
+  # Añadir el mapa base de OpenStreetMap
+  addTiles() %>%
+  
+  # Añadir los puntos de las direcciones, coloreados por el centro más cercano
+  addCircleMarkers(
+    ~longitud, ~latitud, 
+    color = ~case_when(
+      Cercano == "Garin" ~ "red",
+      Cercano == "Pablo_Nogues" ~ "blue",
+      Cercano == "Tortuguitas" ~ "green"
+    ),
+    radius = 4, fillOpacity = 0.8, stroke = FALSE, 
+    label = ~paste("Centro cercano:", Cercano)  # Etiquetas mostrando el centro más cercano
+  ) %>%
+  
+  # Añadir una leyenda
+  addLegend(
+    "bottomright", 
+    colors = c("red", "blue", "green"), 
+    labels = c("Garin", "Pablo Nogues", "Tortuguitas"), 
+    title = "Centro más cercano"
+  )
+
+# Mostrar el mapa
+mapa_primeras
+```
+
+## Mapeo de una ruta aproximada
+
+```{r}
+
+library(leaflet)
+library(dplyr)
+library(sf)
+
+# Convertir las columnas de fecha y hora a los formatos adecuados
+df <- df %>%
+  mutate(
+    VisitaPlanificadaFecha = as.Date(VisitaPlanificadaFecha, format="%Y-%m-%d"),
+    VisitaHora_Inicio = as.POSIXct(VisitaHora_Inicio, format="%H:%M:%S")
+  )
+
+# Seleccionar las entregas de un día específico (cambiar la fecha a la que desees)
+df_dia <- df %>%
+  filter(VisitaPlanificadaFecha == as.Date("2024-07-12")) %>%  # Cambiar la fecha a la que quieras
+  arrange(VisitaHora_Inicio)  # Ordenar por la hora de inicio de la visita
+
+# Añadir un número de orden a las entregas
+df_dia <- df_dia %>%
+  mutate(orden = row_number())
+
+# Convertir el dataframe a objeto sf (simple features) para manejar las coordenadas
+df_sf <- st_as_sf(df_dia, coords = c("longitud", "latitud"), crs = 4326)
+
+df_dia$longitud <- as.numeric(df_dia$longitud)
+
+# Crear el mapa en leaflet
+mapa_ruteo <- leaflet(df_dia) %>%
+  # Establecer la vista centrada en la ubicación promedio
+  setView(lng = -58.5, lat = -34.6, zoom = 10) %>%
+  
+  # Añadir el mapa base de OpenStreetMap
+  addTiles() %>%
+  
+  # Añadir los puntos de entrega numerados
+  addCircleMarkers(
+    ~longitud, ~latitud, 
+    radius = 5, fillOpacity = 1, stroke = FALSE, 
+    label = ~paste("Entrega:", orden),  # Mostrar el número de entrega al pasar el mouse
+    popup = ~paste("Entrega #", orden, "<br>Hora:", VisitaHora_Inicio)
+  ) %>%
+  
+  # Conectar los puntos en orden de entrega con una línea
+  addPolylines(
+    lng = ~longitud, lat = ~latitud, 
+    color = "blue", weight = 2, 
+    popup = "Ruta de entregas"
+  )
+
+# Mostrar el mapa
+mapa_ruteo
+
+```
+
+# Añadimos las rutas reales para las primeras 50 entregas de este dia
+
+```{r}
+
+library(leaflet)
+library(osrm)
+library(dplyr)
+
+# Primeras 50 entregas del dia
+df_dia2 <- head(df_dia,50)
+# Obtener rutas reales entre las entregas
+rutas <- list()
+
+# Iteramos para obtener las rutas entre cada par de entregas consecutivas
+for(i in 1:(nrow(df_dia2) - 1)) {
+  # Origen y destino para cada ruta
+  origen <- df_dia2[i, c("longitud", "latitud")]
+  destino <- df_dia2[i + 1, c("longitud", "latitud")]
+  
+  # Obtener la ruta entre el origen y destino
+  ruta <- osrmRoute(src = origen, dst = destino, returnclass = "sf")
+  rutas[[i]] <- ruta  # Guardamos cada ruta
+}
+
+# Crear el mapa con leaflet
+mapa <- leaflet() %>%
+  addTiles() %>%  # Añadir mapa base
+  setView(lng = -58.5, lat = -34.6, zoom = 10)
+
+# Añadir los puntos de entrega al mapa, numerados
+for(i in 1:nrow(df_dia2)) {
+  mapa <- mapa %>%
+    addCircleMarkers(lng = df_dia2$longitud[i], 
+                     lat = df_dia2$latitud[i], 
+                     label = as.character(df_dia2$orden[i]),
+                     color = "blue", 
+                     radius = 5, 
+                     fillOpacity = 0.8,
+                     popup = paste("Entrega:", df_dia2$orden[i],
+                                   "<br>Hora:", df_dia$VisitaInicioHora[i]))
+}
+
+# Añadir las rutas reales al mapa
+for(i in 1:length(rutas)) {
+  mapa <- mapa %>%
+    addPolylines(data = rutas[[i]], color = "purple", weight = 2)
+}
+
+# Mostrar el mapa
+mapa
 ```
