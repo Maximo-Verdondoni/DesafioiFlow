@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(tidyverse)
-df <- read_csv('C://Users//anapa//OneDrive//Escritorio//facu//tdii//DesafioiFlow//iFlowDatos_Limpios.csv') 
+df <- read_csv('iFlowDatos_Limpios.csv') 
 library(dplyr)
 glimpse(df)
 ```
@@ -20,8 +20,8 @@ glimpse(df)
 ## Creacion de Demora Planificada
 
 ```{r}
-mutate(Demora_Planificada = as.numeric(difftime(VisitaHora_Inicio, VisitaPlanificadaHora, units = "mins"))) 
-df
+df <- df %>% 
+        mutate(Demora_Planificada = as.numeric(difftime(VisitaHora_Inicio, VisitaPlanificadaHora, units = "mins"))) 
 ```
 
 ## Comparacion de las Demoras
