@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.5.57">
+<meta name="generator" content="quarto-1.6.30">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -29,10 +29,10 @@ ul.task-list li input[type="checkbox"] {
 <script src="VISUALIZACIONES_FINAL_files/libs/quarto-html/tippy.umd.min.js"></script>
 <script src="VISUALIZACIONES_FINAL_files/libs/quarto-html/anchor.min.js"></script>
 <link href="VISUALIZACIONES_FINAL_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="VISUALIZACIONES_FINAL_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="VISUALIZACIONES_FINAL_files/libs/quarto-html/quarto-syntax-highlighting-3a01e2046221230fdceeea94b1ec5d67.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="VISUALIZACIONES_FINAL_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="VISUALIZACIONES_FINAL_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="VISUALIZACIONES_FINAL_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="VISUALIZACIONES_FINAL_files/libs/bootstrap/bootstrap-9b365665436b74601bfdd373904bad7c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
 
 <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
@@ -54,20 +54,41 @@ ul.task-list li input[type="checkbox"] {
 <section id="índice" class="level1">
 <h1>Índice</h1>
 <ul>
-<li><a href="#seccion-1">Sección 1</a>
+<li><a href="#intro">Introducción</a>
 <ul>
-<li><a href="#subseccion-11">Subsección 1.1</a></li>
-</ul></li>
-<li><a href="#seccion-2">Sección 2</a>
+<li><a href="#obj">Objetivos</a></li>
+<li><a href="#met">Metodología</a>
 <ul>
-<li><a href="#subseccion-21">Subsección 2.1</a></li>
+<li><a href="#pa">Primer Acercamiento</a></li>
+<li><a href="#ld">Limpieza y Depuración</a></li>
 </ul></li>
+</ul></li>
+<li><a href="#An1">Análisis Por Día y Semana</a>
+<ul>
+<li><a href="#epd">Entregas Por Día</a></li>
+<li><a href="#eps">Entregas Por Semana</a></li>
+</ul></li>
+<li><a href="#An2">Análisis Por Localización</a>
+<ul>
+<li><a href="#hme">Mapa De Entregas</a></li>
+<li><a href="#hme20">Mapa De Entregas Cliente 20</a></li>
+<li><a href="#hme70">Mapa De Entregas Cliente 70</a></li>
+</ul></li>
+<li><a href="#An3">Análisis Temporal</a></li>
+<li><a href="#An4">Análisis De Demora</a>
+<ul>
+<li><a href="#hmd">Mapa De Demora</a></li>
+</ul></li>
+<li><a href="#An5">Análisis Por Hora Planificada</a></li>
+<li><a href="#An6">Análisis De Bulto, Peso y Unidades</a></li>
+<li><a href="#Con">Conclusiones</a></li>
 </ul>
-<hr>
+<hr id="intro">
 
 </section>
 <section id="introducción" class="level1">
 <h1><strong>Introducción</strong></h1>
+<div id="obj">
 <section id="objetivos" class="level3">
 <h3 class="anchored" data-anchor-id="objetivos">Objetivos</h3>
 <ul>
@@ -85,11 +106,13 @@ ul.task-list li input[type="checkbox"] {
 <li><p>Sugerir cambios en la gestión de operaciones de la empresa, mediante la interpretación de los problemas identificados en la observación de los datos, para incrementar la eficiencia en las operaciones de distribución.</p></li>
 </ul></li>
 </ul>
+<div id="met">
 <section id="metodología" class="level3">
 <h3 class="anchored" data-anchor-id="metodología"><strong>Metodología</strong></h3>
 <p>IFlow es una empresa líder en operaciones logísticas con alcance nacional e internacional, destacándose en la prestación de servicios, como la recolección de mercancías, depósito de productos, distribución y la entrega de pedidos. En este sentido, la empresa especializa en servicios que incluyen empaquetados, etiquetados y re procesos de energías renovables, cosmética y salud, BackOffice y Co-Packing. De esta manera, IFlow ha logrado trabajar mutuamente con distintas marcas de gran impacto en diferentes industrias, como MercadoLibre, Lacoste, Ducati, AVON, entre otras (iFlow (2023)).</p>
 <p>En este contexto, IFlow se encarga de co-gerenciar y operar diferentes cadenas de abastecimiento de sus clientes en Argentina y MERCOSUR (Universidad de la Sabana,Universidad de Montevideo y Universidad Austral (2024)), por medio del desarrollo de soluciones logísticas enfocadas en el uso de la tecnología a favor de la innovación, centralización y gestión de ventas; esto se ve reflejado en aquellos servicios de tecnología móvil, Tracking Logístico y ruteo inteligente de los pedidos (iFlow (2024)).</p>
 <p>De esta forma, la presente sección narra los diferentes procesos que se llevaron a cabo para poder realizar un análisis exploratorio de los datos, buscando comprender las distintas relaciones entre los datos y su comportamiento a lo largo del tiempo. Así, se recurrió al uso de lenguajes de programación como lo son R y Python, con sus respectivas bibliotecas, facilitando la gestión de los datos y la creación de representaciones gráficas, que permitan visualizar la dispersión y conducta de los datos.</p>
+<div id="pa">
 <section id="primer-acercamiento-a-los-datos" class="level5">
 <h5 class="anchored" data-anchor-id="primer-acercamiento-a-los-datos"><strong>Primer Acercamiento a los Datos</strong></h5>
 <p>En lo referente a la base de datos brindada por IFlow, se identificaron un total de 27484 registros seccionados en 16 campos, que representan información transaccional de entregas de pedidos. De este modo, el Cuadro 1 expone los nombres de las columnas del DataFrame con sus respectivos tipos de datos. Además, se muestran la cantidad de elementos únicos en cada campo, lo que brinda información esencial para el análisis.</p>
@@ -191,6 +214,7 @@ ul.task-list li input[type="checkbox"] {
 </table>
 <p>Teniendo en cuenta lo anterior, se identifican 3 tipos principales de datos que conforman el DataFrame, que corresponden a enteros, flotantes y objetos, que tendrán su propio formato dependiendo su utilidad, como lo son los datos relacionados a una fecha u ubicación geográfica. Por otra parte, el conocimiento de los datos únicos permitió percibir que el conjunto de datos obtenido, corresponde a un contexto de diferentes entregas realizadas a dos clientes , a lo largo de un periodo de 3 meses (Mayo, Junio y Julio) en 44 localidades distintas.</p>
 </section>
+<div id="ld">
 <section id="limpieza-y-depuración" class="level5">
 <h5 class="anchored" data-anchor-id="limpieza-y-depuración"><strong>Limpieza y Depuración</strong></h5>
 <p>La limpieza de los datos, es una parte esencial en el análisis de datos, que se basa en la identificación y ajuste de los datos, debido a que permite la correcta eliminación de inconsistencias que puedan afectar la integridad de estos, con el propósito de garantizar que los resultados a partir del análisis sean mas concretos y precisos.</p>
@@ -202,18 +226,17 @@ ul.task-list li input[type="checkbox"] {
 <li><p>Se identifico que los campos ’InicioVisitaPlanificado’ y ’FinVisitaPlanificado’ eran idénticos, por lo que se opto por eliminarlos y crear una nueva columna con la misma información y con el nombre de ’VisitaPlanificada’. Corregimos las variables que hace mencion al mes en que se realizó la entrega ya que habían valores que no se correspondian con la fecha en la que realmente se realizó. Además, creamos las variables de ‘VisitaPlanificadaFecha’, ‘VisitaPlanificadaDia’, ‘VisitaPlanificadaHora’, ‘VisitaFecha’, ‘VisitaDia’, ‘VisitaHora_Inicio’ y ‘VisitaHora_Fin’ para que optimizar el análisis.</p></li>
 </ul>
 <p>Luego de todo este desarrollo, obtuvimos un dataset con 27484 registros dividos en 21 campos, lo que a diferencia de los 16 campos que estaban en el DataSet original, muestra la adición de 5 campos adicionales, que suministraron información más detallada de los pedidos</p>
-<hr>
+<hr id="An1">
 
 </section>
-</section>
-<section id="resultados-y-análisis-de-resultados" class="level1">
-<h1>Resultados y Análisis de Resultados</h1>
+<section id="análisis" class="level1">
+<h1>Análisis</h1>
 <p>A continuación, se mostrarán los resultados de un exhaustivo análisis exploratorio de la base de datos. Los gráficos enseñados fueron meticulosamente diseñados y creados con el fin de facilitar la interpretación del mensaje que se quiere transmitir con ellos.</p>
-<div id="cell-8" class="cell" data-execution_count="3">
+<div id="cell-8" class="cell" data-execution_count="14">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-4-output-1.png" width="440" height="438" class="figure-img"></p>
+<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-4-output-1.png" width="440" height="441" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -246,7 +269,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </div>
-<hr>
+<hr id="epd">
 
 </section>
 <section id="entregas-por-día" class="level1">
@@ -294,6 +317,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </div>
+<div id="eps">
 <section id="entregas-por-día-de-la-semana" class="level3">
 <h3 class="anchored" data-anchor-id="entregas-por-día-de-la-semana">Entregas por Día de la Semana</h3>
 <p>Calculando la cantidad de entregas realizadas por día de la semana, podemos ver un claro patrón: La mayoría de ;as entregas se realizan los Martes y Miércoles, siendo el día con menor entregas los Lunes, seguido de Jueves, Viernes y Sábado.</p>
@@ -317,13 +341,15 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </div>
-<hr>
+<hr id="An2">
 
-</section>
 </section>
 <section id="entregas-por-localización" class="level1">
 <h1>Entregas por Localización</h1>
 <p>A continuación, creamos un heatmap para entender en que municipios y localidades de la provincia de Buenos Aires y de la Ciudad Autónoma de Buenos Aires se realizan todas las entregas.</p>
+<div id="hme">
+
+</div>
 <section id="heatmap-de-entregas-totales" class="level4">
 <h4 class="anchored" data-anchor-id="heatmap-de-entregas-totales">Heatmap de entregas totales</h4>
 <div id="cell-33" class="cell" data-execution_count="15">
@@ -422,7 +448,10 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </div>
-<p>Creando un heatmap para las entregas realizadas a cada cliente por separado, podemos ver como ambos tienden a recibir entregas en similares localidades zonas en CABA, pero tienen una diferencia: El Cliente 20 recibe entregas fuera de CABA mientras que el Cliente 70 se enfoca exclusivamente en CABA.</p>
+Creando un heatmap para las entregas realizadas a cada cliente por separado, podemos ver como ambos tienden a recibir entregas en similares localidades zonas en CABA, pero tienen una diferencia: El Cliente 20 recibe entregas fuera de CABA mientras que el Cliente 70 se enfoca exclusivamente en CABA.
+<div id="hme20">
+
+</div>
 </section>
 <section id="heatmap-de-entregas-del-cliente-20" class="level4">
 <h4 class="anchored" data-anchor-id="heatmap-de-entregas-del-cliente-20">Heatmap de entregas del Cliente 20</h4>
@@ -511,6 +540,9 @@ ul.task-list li input[type="checkbox"] {
 </script>
 </html>" style="position:absolute;width:100%;height:100%;left:0;top:0;border:none !important;" allowfullscreen="" webkitallowfullscreen="" mozallowfullscreen=""></iframe></div></div>
 </div>
+</div>
+<div id="hme70">
+
 </div>
 </section>
 <section id="heatmap-de-entregas-del-cliente-70" class="level4">
@@ -601,7 +633,7 @@ ul.task-list li input[type="checkbox"] {
 </html>" style="position:absolute;width:100%;height:100%;left:0;top:0;border:none !important;" allowfullscreen="" webkitallowfullscreen="" mozallowfullscreen=""></iframe></div></div>
 </div>
 </div>
-<hr>
+<hr id="An3">
 
 </section>
 </section>
@@ -627,7 +659,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </div>
-<hr>
+<hr id="An4">
 
 </section>
 <section id="análisis-de-la-demora-por-entrega" class="level1">
@@ -684,6 +716,9 @@ ul.task-list li input[type="checkbox"] {
 </figure>
 </div>
 </div>
+</div>
+<div id="hmd">
+
 </div>
 <section id="heatmap-de-demora" class="level4">
 <h4 class="anchored" data-anchor-id="heatmap-de-demora">Heatmap de Demora</h4>
@@ -775,7 +810,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <div>
 <p>Observando el Heatmap, podemos observar que pareciera haber zonas geográficas que se tiende a demorar más en hacer las entregas que otras. A continuación, mostramos cuales son los 7 municipios y 7 localidades con más demoras.</p>
-<hr>
+<hr id="An5">
 
 <section id="análisis-de-las-horas-planificadas-de-entrega" class="level1">
 <h1>Análisis de las Horas Planificadas de Entrega</h1>
@@ -816,16 +851,43 @@ ul.task-list li input[type="checkbox"] {
 <li><p>En el transcurso de los meses de Mayo, Junio y Julio, no se observo ninguna mejora en el porcentaje de entregas tardías, todos mantuvieron un porcentaje aproximado del 75%.</p></li>
 <li><p>Lo mismo con los municipios y las localidades: en la gran mayoría, el porcentaje de entregas tardías ronda entre el 80-70%, siendo el municipio con mayor porcentaje la Comuna 8 con casi un 84% y la localidad con mayor porcentaje San Telmo con aproximadamente 83%.</p></li>
 </ul>
-<hr>
+<hr id="An6">
 
 </section>
 <section id="análisis-de-bulto-unidades-y-peso" class="level1">
 <h1>Análisis de Bulto, Unidades y Peso</h1>
-<div id="cell-72" class="cell" data-execution_count="126">
+<div id="cell-72" class="cell" data-execution_count="16">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-35-output-1.png" width="738" height="437" class="figure-img"></p>
+<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-35-output-1.png" width="556" height="441" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<ul>
+<li><p>A pesar de la diferencia entre cantidad de entregas, las proporciones de los pesos de los pedidos son muy similares.</p></li>
+<li><p>Independientemente de la ubicación, se mantiene una cierta homogeneidad en cuanto a las categorías de peso.</p></li>
+</ul>
+<div id="cell-74" class="cell" data-execution_count="20">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-36-output-1.png" width="534" height="441" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<ul>
+<li><p>Podemos ver que el 60% de entregas totales rondan entre los 11-50 kilos, como tambíen asi las entregas de cada cliente.</p></li>
+<li><p>El cliente 20 no suele tener pedidos menores a 10kg.</p></li>
+<li><p>Mientras que el cliente 70 tiende a tener pedidos livianos como tambien pesados.</p></li>
+</ul>
+<div id="cell-76" class="cell" data-execution_count="126">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-37-output-1.png" width="738" height="437" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -836,11 +898,11 @@ ul.task-list li input[type="checkbox"] {
 <li><p>El cliente 20 tiende a hacer pedidos con una relacion mas alta de unidades con una mayor dispersion en los datos (debido posiblemente a distintos productos)</p></li>
 <li><p>El cliente 70 tiende a hacer pedidos con datos muy heteregeneos con mas bultos que unidades (puede deberse a que siempre pide productos similares o identicos)</p></li>
 </ul>
-<div id="cell-74" class="cell" data-execution_count="127">
+<div id="cell-78" class="cell" data-execution_count="127">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-36-output-1.png" width="738" height="437" class="figure-img"></p>
+<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-38-output-1.png" width="738" height="437" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -855,12 +917,35 @@ ul.task-list li input[type="checkbox"] {
 <li><p>Cliente 20: Parece tener entregas mas uniformes y estructuradas especialmente por su relacion entre bultos y unidades sugiriendo que trabaja con productos mas homogeneos en tamaño y cantidad</p></li>
 <li><p>Cliente 70: Hay mayor variabilidad en este cliente, lo que nos sugiere que el cliente trabaja con productos mas heterogeneos en volumen y peso. Tambien maneja grandes cantidades de unidades sugiriendo que sus envios son grandes y voluminosos</p></li>
 </ul>
+<hr id="Con">
+
+</section>
+<section id="conclusiones" class="level1">
+<h1>Conclusiones</h1>
+<ul>
+<li><p>El cliente 20 aproximadamente casi 6000 entregas mas que el cliente 70.</p></li>
+<li><p>CABA tiene 12 veces mas entregas que provincia.</p></li>
+<li><p>En buenos aires el 97% de los pedidos son del cliente 20, mientras que en CABA ambos tienen casi la misma presencia.</p></li>
+<li><p>La cantidad de entegas diarias rondan entre 300 a 420</p></li>
+<li><p>Se ve una tendencia creciente de entregas en la semana hasta el día Miercoles que tiene su pico para luego decrecer.</p></li>
+<li><p>Cliente 20 tiene mayor cantidad de entregas en la zona de Palermo y alrededores.</p></li>
+<li><p>Cliente 70 tiene entregas mas dispersas a lo largo de CABA.</p></li>
+<li><p>El cliente 20 tiene una distribución más simétrica de cantidades de entrega por hora de visita centrada a las 12h.</p></li>
+<li><p>A diferencia del cliente 20, el cliente 70 tiene una distribución centrada a las 15h</p></li>
+</ul>
 </section>
 </div>
 </section>
 </section>
 </div>
 </section>
+</div>
+</div>
+</section>
+</div>
+</div>
+</section>
+</div>
 </section>
 
 </main>
