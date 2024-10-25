@@ -20,6 +20,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -810,37 +844,345 @@ Creando un heatmap para las entregas realizadas a cada cliente por separado, pod
 </div>
 <div>
 <p>Observando el Heatmap, podemos observar que pareciera haber zonas geográficas que se tiende a demorar más en hacer las entregas que otras. A continuación, mostramos cuales son los 7 municipios y 7 localidades con más demoras.</p>
+<div id="cell-62" class="cell" data-execution_count="28">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>asd <span class="op">=</span> df[<span class="st">'municipio'</span>].value_counts()</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>asd <span class="op">=</span> asd[asd <span class="op">&gt;</span> <span class="dv">50</span>].index.tolist()</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>aaa <span class="op">=</span> df[(df[<span class="st">'municipio'</span>].isin(asd))]</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>aaa</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="28">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">iddomicilioorden</th>
+<th data-quarto-table-cell-role="th">direccion</th>
+<th data-quarto-table-cell-role="th">provincia</th>
+<th data-quarto-table-cell-role="th">municipio</th>
+<th data-quarto-table-cell-role="th">localidad</th>
+<th data-quarto-table-cell-role="th">InicioHorario1</th>
+<th data-quarto-table-cell-role="th">FinHorario1</th>
+<th data-quarto-table-cell-role="th">latitud</th>
+<th data-quarto-table-cell-role="th">longitud</th>
+<th data-quarto-table-cell-role="th">cliente</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">InicioVisitaReal</th>
+<th data-quarto-table-cell-role="th">FinVisitaReal</th>
+<th data-quarto-table-cell-role="th">VisitaPlanificadaFecha</th>
+<th data-quarto-table-cell-role="th">VisitaPlanificadaDia</th>
+<th data-quarto-table-cell-role="th">VisitaPlanificadaHora</th>
+<th data-quarto-table-cell-role="th">VisitaFecha</th>
+<th data-quarto-table-cell-role="th">VisitaDia</th>
+<th data-quarto-table-cell-role="th">VisitaHora_Inicio</th>
+<th data-quarto-table-cell-role="th">VisitaHora_Fin</th>
+<th data-quarto-table-cell-role="th">categoria_peso</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>74956</td>
+<td>VIDAL 2044</td>
+<td>Ciudad Autónoma de Buenos Aires</td>
+<td>Comuna 13</td>
+<td>Belgrano</td>
+<td>901</td>
+<td>1401</td>
+<td>-34.564779</td>
+<td>-58.459956</td>
+<td>70</td>
+<td>...</td>
+<td>2024-05-23 14:13:53.000</td>
+<td>2024-05-23 14:14:53.000</td>
+<td>2024-05-23</td>
+<td>Thursday</td>
+<td>12:06:00</td>
+<td>2024-05-23</td>
+<td>Thursday</td>
+<td>14:13:53</td>
+<td>14:14:53</td>
+<td>21-50kg</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>74956</td>
+<td>VIDAL 2044</td>
+<td>Ciudad Autónoma de Buenos Aires</td>
+<td>Comuna 13</td>
+<td>Belgrano</td>
+<td>901</td>
+<td>1401</td>
+<td>-34.564779</td>
+<td>-58.459956</td>
+<td>70</td>
+<td>...</td>
+<td>2024-05-10 16:43:00.000</td>
+<td>2024-05-10 16:43:00.000</td>
+<td>2024-05-10</td>
+<td>Friday</td>
+<td>12:05:00</td>
+<td>2024-05-10</td>
+<td>Friday</td>
+<td>16:43:00</td>
+<td>16:43:00</td>
+<td>21-50kg</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>74956</td>
+<td>VIDAL 2044</td>
+<td>Ciudad Autónoma de Buenos Aires</td>
+<td>Comuna 13</td>
+<td>Belgrano</td>
+<td>901</td>
+<td>1401</td>
+<td>-34.564779</td>
+<td>-58.459956</td>
+<td>70</td>
+<td>...</td>
+<td>2024-05-30 09:41:36.000</td>
+<td>2024-05-30 09:50:08.000</td>
+<td>2024-05-30</td>
+<td>Thursday</td>
+<td>12:03:00</td>
+<td>2024-05-30</td>
+<td>Thursday</td>
+<td>09:41:36</td>
+<td>09:50:08</td>
+<td>21-50kg</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>74956</td>
+<td>VIDAL 2044</td>
+<td>Ciudad Autónoma de Buenos Aires</td>
+<td>Comuna 13</td>
+<td>Belgrano</td>
+<td>901</td>
+<td>1401</td>
+<td>-34.564779</td>
+<td>-58.459956</td>
+<td>70</td>
+<td>...</td>
+<td>2024-06-13 13:32:55.000</td>
+<td>2024-06-13 13:39:55.000</td>
+<td>2024-06-13</td>
+<td>Thursday</td>
+<td>12:14:00</td>
+<td>2024-06-13</td>
+<td>Thursday</td>
+<td>13:32:55</td>
+<td>13:39:55</td>
+<td>11-20kg</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>74956</td>
+<td>VIDAL 2044</td>
+<td>Ciudad Autónoma de Buenos Aires</td>
+<td>Comuna 13</td>
+<td>Belgrano</td>
+<td>901</td>
+<td>1401</td>
+<td>-34.564779</td>
+<td>-58.459956</td>
+<td>70</td>
+<td>...</td>
+<td>2024-06-27 15:36:00.000</td>
+<td>2024-06-27 15:36:00.000</td>
+<td>2024-06-27</td>
+<td>Thursday</td>
+<td>12:27:00</td>
+<td>2024-06-27</td>
+<td>Thursday</td>
+<td>15:36:00</td>
+<td>15:36:00</td>
+<td>11-20kg</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">27479</td>
+<td>183140</td>
+<td>CASTILLO 767</td>
+<td>Ciudad Autónoma de Buenos Aires</td>
+<td>Comuna 15</td>
+<td>Villa Crespo</td>
+<td>901</td>
+<td>1401</td>
+<td>-34.593083</td>
+<td>-58.436314</td>
+<td>20</td>
+<td>...</td>
+<td>2024-08-01 15:51:49.000</td>
+<td>2024-08-01 15:56:37.000</td>
+<td>2024-08-01</td>
+<td>Thursday</td>
+<td>12:52:00</td>
+<td>2024-08-01</td>
+<td>Thursday</td>
+<td>15:51:49</td>
+<td>15:56:37</td>
+<td>11-20kg</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">27480</td>
+<td>183141</td>
+<td>ARENALES 2699</td>
+<td>Ciudad Autónoma de Buenos Aires</td>
+<td>Comuna 2</td>
+<td>Recoleta</td>
+<td>901</td>
+<td>1401</td>
+<td>-34.592476</td>
+<td>-58.404052</td>
+<td>20</td>
+<td>...</td>
+<td>2024-07-31 12:24:53.000</td>
+<td>2024-07-31 12:25:53.000</td>
+<td>2024-07-31</td>
+<td>Wednesday</td>
+<td>12:30:00</td>
+<td>2024-07-31</td>
+<td>Wednesday</td>
+<td>12:24:53</td>
+<td>12:25:53</td>
+<td>11-20kg</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">27481</td>
+<td>183274</td>
+<td>OLAZABAL 2572</td>
+<td>Ciudad Autónoma de Buenos Aires</td>
+<td>Comuna 13</td>
+<td>Belgrano</td>
+<td>901</td>
+<td>1401</td>
+<td>-34.561181</td>
+<td>-58.459866</td>
+<td>70</td>
+<td>...</td>
+<td>2024-08-01 13:09:13.000</td>
+<td>2024-08-01 13:22:13.000</td>
+<td>2024-08-01</td>
+<td>Thursday</td>
+<td>12:10:00</td>
+<td>2024-08-01</td>
+<td>Thursday</td>
+<td>13:09:13</td>
+<td>13:22:13</td>
+<td>6-10kg</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">27482</td>
+<td>183276</td>
+<td>GUAMINI 2121</td>
+<td>Ciudad Autónoma de Buenos Aires</td>
+<td>Comuna 9</td>
+<td>Mataderos</td>
+<td>901</td>
+<td>1401</td>
+<td>-34.661128</td>
+<td>-58.511529</td>
+<td>20</td>
+<td>...</td>
+<td>2024-08-01 13:26:20.000</td>
+<td>2024-08-01 13:34:32.000</td>
+<td>2024-08-01</td>
+<td>Thursday</td>
+<td>12:20:00</td>
+<td>2024-08-01</td>
+<td>Thursday</td>
+<td>13:26:20</td>
+<td>13:34:32</td>
+<td>21-50kg</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">27483</td>
+<td>183277</td>
+<td>AV. CALLAO 453</td>
+<td>Ciudad Autónoma de Buenos Aires</td>
+<td>Comuna 1</td>
+<td>San Nicolás</td>
+<td>901</td>
+<td>1401</td>
+<td>-34.603752</td>
+<td>-58.392250</td>
+<td>20</td>
+<td>...</td>
+<td>2024-08-01 10:34:29.000</td>
+<td>2024-08-01 10:42:49.000</td>
+<td>2024-08-01</td>
+<td>Thursday</td>
+<td>12:19:00</td>
+<td>2024-08-01</td>
+<td>Thursday</td>
+<td>10:34:29</td>
+<td>10:42:49</td>
+<td>11-20kg</td>
+</tr>
+</tbody>
+</table>
+
+<p>27420 rows × 25 columns</p>
+</div>
+</div>
+</div>
 <hr id="An5">
 
 <section id="análisis-de-las-horas-planificadas-de-entrega" class="level1">
 <h1>Análisis de las Horas Planificadas de Entrega</h1>
 <p>Estudiando las horas en las que fueron planificadas las entregas de ambos clientes, podemos observar cómo la gran mayoria, casi un 87% de ellas, fue planificada para realizarse a las 12hs.</p>
-<div id="cell-64" class="cell" data-execution_count="128">
+<div id="cell-65" class="cell" data-execution_count="128">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-31-output-1.png" width="474" height="437" class="figure-img"></p>
+<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-32-output-1.png" width="474" height="437" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
 <p>Si tomamos en cuenta uno de los gráficos enseñados anteriormente en el que se muestra la hora real en la que se terminaron realizando las entregas, la cual la gran mayoría de entregas se terminaron realizando a las 15hs, es evidente que hay una discrepancia considerable entre la hora en la que fueron planificadas la realización de las entregas y la hora en las que se terminaron haciendo. Eso es algo que se puede notar en el gráfico de abajo.</p>
-<div id="cell-66" class="cell" data-execution_count="64">
+<div id="cell-67" class="cell" data-execution_count="64">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-32-output-1.png" width="477" height="438" class="figure-img"></p>
+<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-33-output-1.png" width="477" height="438" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
 <p>Si segmentamos por las entregas que se le realizó a cada cliente, podemos ver una diferencia considerable: Casi el 68% de las entregas al Cliente 20 fueron hechas más tarde de lo planeado, mientras que para el Cliente 70 fueron aproximadamente el 85%; una diferencia del 17%.</p>
 <p>Resulta importante tambien notar que tan solo el 13.4% y el 7.8% de las entregas del Cliente 20 y del Cliente 70 respectivamente fueron entregadas en el horario planificado. Aquí se peude encontrar un área de mejora por parte de la empresa.</p>
-<div id="cell-68" class="cell" data-execution_count="152">
+<div id="cell-69" class="cell" data-execution_count="152">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-33-output-1.png" width="966" height="438" class="figure-img"></p>
+<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-34-output-1.png" width="966" height="438" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -856,11 +1198,11 @@ Creando un heatmap para las entregas realizadas a cada cliente por separado, pod
 </section>
 <section id="análisis-de-bulto-unidades-y-peso" class="level1">
 <h1>Análisis de Bulto, Unidades y Peso</h1>
-<div id="cell-72" class="cell" data-execution_count="16">
+<div id="cell-73" class="cell" data-execution_count="16">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-35-output-1.png" width="556" height="441" class="figure-img"></p>
+<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-36-output-1.png" width="556" height="441" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -869,11 +1211,11 @@ Creando un heatmap para las entregas realizadas a cada cliente por separado, pod
 <li><p>A pesar de la diferencia entre cantidad de entregas, las proporciones de los pesos de los pedidos son muy similares.</p></li>
 <li><p>Independientemente de la ubicación, se mantiene una cierta homogeneidad en cuanto a las categorías de peso.</p></li>
 </ul>
-<div id="cell-74" class="cell" data-execution_count="20">
+<div id="cell-75" class="cell" data-execution_count="30">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-36-output-1.png" width="534" height="441" class="figure-img"></p>
+<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-37-output-1.png" width="667" height="442" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -883,11 +1225,11 @@ Creando un heatmap para las entregas realizadas a cada cliente por separado, pod
 <li><p>El cliente 20 no suele tener pedidos menores a 10kg.</p></li>
 <li><p>Mientras que el cliente 70 tiende a tener pedidos livianos como tambien pesados.</p></li>
 </ul>
-<div id="cell-76" class="cell" data-execution_count="126">
+<div id="cell-77" class="cell" data-execution_count="126">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-37-output-1.png" width="738" height="437" class="figure-img"></p>
+<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-38-output-1.png" width="738" height="437" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -898,11 +1240,11 @@ Creando un heatmap para las entregas realizadas a cada cliente por separado, pod
 <li><p>El cliente 20 tiende a hacer pedidos con una relacion mas alta de unidades con una mayor dispersion en los datos (debido posiblemente a distintos productos)</p></li>
 <li><p>El cliente 70 tiende a hacer pedidos con datos muy heteregeneos con mas bultos que unidades (puede deberse a que siempre pide productos similares o identicos)</p></li>
 </ul>
-<div id="cell-78" class="cell" data-execution_count="127">
+<div id="cell-79" class="cell" data-execution_count="127">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-38-output-1.png" width="738" height="437" class="figure-img"></p>
+<p><img src="VISUALIZACIONES_FINAL_files/figure-html/cell-39-output-1.png" width="738" height="437" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -932,6 +1274,13 @@ Creando un heatmap para las entregas realizadas a cada cliente por separado, pod
 <li><p>Cliente 70 tiene entregas mas dispersas a lo largo de CABA.</p></li>
 <li><p>El cliente 20 tiene una distribución más simétrica de cantidades de entrega por hora de visita centrada a las 12h.</p></li>
 <li><p>A diferencia del cliente 20, el cliente 70 tiene una distribución centrada a las 15h</p></li>
+<li><p>Solamente el 25.3% de los pedidos del cliente 20 NO tienen demora.</p></li>
+<li><p>El 55.6% de los pedidos del cliente 70 NO tienen demora.</p></li>
+<li><p>El 86% de las entregas tienen hora planificada de entrega a las 12h</p></li>
+<li><p>El 74.5% de las entregas se hicieron mas tarde de lo planeado</p></li>
+<li><p>Aunque CABA tiene 12 veces más entregas que provincia, ambas tienen la misma proporción de categorías de peso.</p></li>
+<li><p>El Cliente 20 parece tener entregas mas uniformes y estructuradas especialmente por su relación entre bultos y unidades sugiriendo que trabaja con productos mas homogeneos en tamaño y cantidad</p></li>
+<li><p>El Cliente 70 tiene mayor variabilidad, lo que nos sugiere que el cliente trabaja con productos mas heterogeneos en volumen y peso. Tambien maneja grandes cantidades de unidades sugiriendo que sus envios son grandes y voluminosos</p></li>
 </ul>
 </section>
 </div>
