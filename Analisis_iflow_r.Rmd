@@ -20,7 +20,8 @@ glimpse(df)
 ## Creacion de Demora Planificada
 
 ```{r}
-mutate(Demora_Planificada = as.numeric(difftime(VisitaHora_Inicio, VisitaPlanificadaHora, units = "mins"))) 
+df <- df %>% 
+       mutate(Demora_Planificada = as.numeric(difftime(VisitaHora_Inicio, VisitaPlanificadaHora, units = "mins"))) 
 df
 ```
 
@@ -89,6 +90,7 @@ ggplot(df, aes(x = factor(cliente), y = Demora_Planificada)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 ```
+
 ```{r}
 # Distribución de la demora planificada
 ggplot(df, aes(x = Demora_Planificada)) +
