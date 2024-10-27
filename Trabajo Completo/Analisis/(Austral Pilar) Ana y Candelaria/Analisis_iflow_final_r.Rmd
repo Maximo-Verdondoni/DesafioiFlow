@@ -1,0 +1,562 @@
+---
+title: "analisis iflow"
+output:
+  html_document: default
+  pdf_document: default
+date: "2024-10-17"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introducción
+
+En este análisis se examinan los datos de rendimiento de iFlow con un enfoque particular en los tiempos de entrega, rutas optimizadas y la distribución de recursos a lo largo de distintos puntos de entrega. Utilizando un conjunto de métricas, el objetivo es identificar las áreas donde se pueden reducir demoras en las entregas y aumentar la eficiencia operativa. Para ello, se analizan los patrones de uso y se considera la secuencia de entrega de paquetes, buscando lograr una estimación más precisa del tiempo de llegada y optimización de rutas.
+
+## Carga del CSV
+
+```{r}
+library(tidyverse)
+df <- read_csv('C://Users//anapa//OneDrive//Escritorio//facu//tdii//DesafioiFlow//iFlowDatos_Limpios.csv')
+library(dplyr)
+glimpse(df)
+```
+
+## Analisis Espacial
+
+### Distancia a los Centros de Distribucion
+
+```{r}
+#Instalamos el paquete osrm que nos permitira calculares distncia en base a los modelos de Open Street Map
+
+# install.packages('osrm')
+library(osrm)
+
+#Definimos las coordenadas para cada centro de distribuicion
+
+centro_pablo_nogues <- c(lon = -58.69417, lat=-34.48175)
+centro_garin <- c(lon= -58.72217, lat=-34.42639)
+centro_tortuguitas <- c(lon= -58.72749, lat =-34.45853)
+
+```
+
+```{r}
+library(dplyr)
+
+options(osrm.server = "https://router.project-osrm.org/")
+
+# Función corregida con manejo de errores
+get_distance <- function(longitud, latitud, point) {
+  # Chequear coordenadas válidas
+  if (is.na(longitud) | is.na(latitud)) return(NA)
+
+  # Definir origen y destino como data frames con columnas lon y lat
+  src <- data.frame(lon = longitud, lat = latitud)
+  dst <- data.frame(lon = point["lon"], lat = point["lat"])
+
+  # Intentar calcular la distancia usando tryCatch para manejar errores
+  result <- tryCatch({
+    osrmRoute(src = src, dst = dst)
+  }, error = function(e) {
+    message("Error calculating distance: ", e)
+    return(NULL)
+  })
+
+  # Verificar si result es NULL
+  if (is.null(result)) return(NA)
+
+  # Pasar la distancia a km si se obtiene un resultado válido
+  return(result$distance)
+}
+
+
+# Mutate the dataset to add a new column 'Distancia_a_Punto1'
+df_distancias <- tail(df,100) %>%
+  rowwise() %>%
+  mutate(Garin = get_distance(longitud, latitud, centro_garin),
+         Pablo_Nogues = get_distance(longitud, latitud, centro_pablo_nogues),
+         Tortuguitas = get_distance(longitud, latitud, centro_tortuguitas)) %>%
+  ungroup()
+
+# Check the updated dataframe
+df_distancias
+
+```
+
+### Calculo centro distribucion mas cercano
+
+```{r}
+df_distancias <- df_distancias %>%
+  mutate(
+    # Calcular la distancia mínima entre los centros
+    Distancia_Minima = pmin(Garin, Pablo_Nogues, Tortuguitas, na.rm = TRUE),
+    
+    # Asignar el nombre del centro de distribución más cercano basado en la distancia mínima
+    Cercano = case_when(
+      Garin == Distancia_Minima ~ "Garin",
+      Pablo_Nogues == Distancia_Minima ~ "Pablo_Nogues",
+      Tortuguitas == Distancia_Minima ~ "Tortuguitas",
+      TRUE ~ NA_character_  # En caso de que haya un problema o NA
+    )
+  )
+
+df_distancias
+```
+
+IFlow posee 3 centros principales de distribución en las afueras de la Ciudad de Buenos Aires; calcular la distancia entre la dirección de entrega y estos, y posteriormente el más cercano a la dirección de entrega, puede ayudar a la empresa a distribuir más eficientemente los paquetes antes de que estos sean despachados a sus respectivos destinos. Esto puede ser llevado a cabo por medio de la libreria OSRM, la misma utiliza la API de OpenStreetMap para trackear la distancia real entre dos puntos, teniendo en cuenta calles, avenidas, caminos, etc. En el caso de nuestro dataset, la gran mayoría de nuestros envíos poseen destinos cercanos al centro de distribución de Pablo Nogués.
+
+```{r}
+
+library(leaflet)
+library(dplyr)
+
+# Crear el mapa usando leaflet
+mapa_leaflet <- leaflet(df_distancias) %>%
+  # Establecer la vista centrada en la provincia de Buenos Aires
+  setView(lng = -58.5, lat = -34.6, zoom = 10) %>%
+  
+  # Añadir el mapa base de OpenStreetMap
+  addTiles() %>%
+  
+  # Añadir los puntos de las direcciones, coloreados por el centro más cercano
+  addCircleMarkers(
+    ~longitud, ~latitud, 
+    color = ~case_when(
+      Cercano == "Garin" ~ "red",
+      Cercano == "Pablo_Nogues" ~ "blue",
+      Cercano == "Tortuguitas" ~ "green"
+    ),
+    radius = 4, fillOpacity = 0.8, stroke = FALSE, 
+    label = ~paste("Centro cercano:", Cercano)  # Etiquetas mostrando el centro más cercano
+  ) %>%
+  
+  # Añadir una leyenda
+  addLegend(
+    "bottomright", 
+    colors = c("red", "blue", "green"), 
+    labels = c("Garin", "Pablo Nogues", "Tortuguitas"), 
+    title = "Centro más cercano"
+  )
+
+# Mostrar el mapa
+mapa_leaflet
+
+
+```
+
+
+En este mapa podemos visualizar de mejor manera los datos recolectados anteriormente y plasmar sobre la zona una muestra de los envíos, clasificados por centro más cercano
+
+### Analisis primeras entregas del dia
+
+```{r}
+# Obtener las primeras entregas de cada día
+df_primeras_entregas <- df %>%
+  group_by(VisitaFecha) %>%
+  slice_min(order_by = VisitaHora_Inicio, with_ties = FALSE) %>%
+  ungroup()
+
+# Ver el nuevo dataset con las primeras entregas
+df_primeras_entregas
+
+```
+
+```{r}
+# Calcular Distancias y centros mas cercanos
+df_primeras_entregas <- df_primeras_entregas %>%
+  rowwise() %>%
+  mutate(Garin = get_distance(longitud, latitud, centro_garin),
+         Pablo_Nogues = get_distance(longitud, latitud, centro_pablo_nogues),
+         Tortuguitas = get_distance(longitud, latitud, centro_tortuguitas)) %>%
+  ungroup()
+
+
+df_primeras_entregas <- df_primeras_entregas %>%
+  mutate(
+    # Calcular la distancia mínima entre los centros
+    Distancia_Minima = pmin(Garin, Pablo_Nogues, Tortuguitas, na.rm = TRUE),
+    
+    # Asignar el nombre del centro de distribución más cercano basado en la distancia mínima
+    Cercano = case_when(
+      Garin == Distancia_Minima ~ "Garin",
+      Pablo_Nogues == Distancia_Minima ~ "Pablo_Nogues",
+      Tortuguitas == Distancia_Minima ~ "Tortuguitas",
+      TRUE ~ NA_character_  # En caso de que haya un problema o NA
+    )
+  )
+
+
+df_primeras_entregas
+```
+
+```{r}
+#Graficamos las primeras entregas en relacion a su centro mas cercano
+
+# Crear el mapa usando leaflet
+mapa_primeras <- leaflet(df_primeras_entregas) %>%
+  # Establecer la vista centrada en la provincia de Buenos Aires
+  setView(lng = -58.5, lat = -34.6, zoom = 10) %>%
+  
+  # Añadir el mapa base de OpenStreetMap
+  addTiles() %>%
+  
+  # Añadir los puntos de las direcciones, coloreados por el centro más cercano
+  addCircleMarkers(
+    ~longitud, ~latitud, 
+    color = ~case_when(
+      Cercano == "Garin" ~ "red",
+      Cercano == "Pablo_Nogues" ~ "blue",
+      Cercano == "Tortuguitas" ~ "green"
+    ),
+    radius = 4, fillOpacity = 0.8, stroke = FALSE, 
+    label = ~paste("Centro cercano:", Cercano)  # Etiquetas mostrando el centro más cercano
+  ) %>%
+  
+  # Añadir una leyenda
+  addLegend(
+    "bottomright", 
+    colors = c("red", "blue", "green"), 
+    labels = c("Garin", "Pablo Nogues", "Tortuguitas"), 
+    title = "Centro más cercano"
+  )
+
+# Mostrar el mapa
+mapa_primeras
+```
+
+### Analisis ultimas entregas de cada dia
+
+```{r}
+# Obtener las ultimas entregas de cada día
+df_ultimas_entregas <- df %>%
+  group_by(VisitaPlanificadaFecha) %>%
+  slice_max(order_by = VisitaHora_Inicio, with_ties = FALSE) %>%
+  ungroup()
+
+# Ver el nuevo dataset con las ultimas entregas
+df_ultimas_entregas
+```
+
+```{r}
+# Calcular Distancias y centros mas cercanos
+df_ultimas_entregas <- df_ultimas_entregas %>%
+  rowwise() %>%
+  mutate(Garin = get_distance(longitud, latitud, centro_garin),
+         Pablo_Nogues = get_distance(longitud, latitud, centro_pablo_nogues),
+         Tortuguitas = get_distance(longitud, latitud, centro_tortuguitas)) %>%
+  ungroup()
+
+
+df_ultimas_entregas <- df_ultimas_entregas %>%
+  mutate(
+    # Calcular la distancia mínima entre los centros
+    Distancia_Minima = pmin(Garin, Pablo_Nogues, Tortuguitas, na.rm = TRUE),
+    
+    # Asignar el nombre del centro de distribución más cercano basado en la distancia mínima
+    Cercano = case_when(
+      Garin == Distancia_Minima ~ "Garin",
+      Pablo_Nogues == Distancia_Minima ~ "Pablo_Nogues",
+      Tortuguitas == Distancia_Minima ~ "Tortuguitas",
+      TRUE ~ NA_character_  # En caso de que haya un problema o NA
+    )
+  )
+
+
+df_ultimas_entregas
+```
+
+```{r}
+#Graficamos las primeras entregas en relacion a su centro mas cercano
+
+# Crear el mapa usando leaflet
+mapa_ultimas <- leaflet(df_ultimas_entregas) %>%
+  # Establecer la vista centrada en la provincia de Buenos Aires
+  setView(lng = -58.5, lat = -34.6, zoom = 10) %>%
+  
+  # Añadir el mapa base de OpenStreetMap
+  addTiles() %>%
+  
+  # Añadir los puntos de las direcciones, coloreados por el centro más cercano
+  addCircleMarkers(
+    ~longitud, ~latitud, 
+    color = ~case_when(
+      Cercano == "Garin" ~ "red",
+      Cercano == "Pablo_Nogues" ~ "blue",
+      Cercano == "Tortuguitas" ~ "green"
+    ),
+    radius = 4, fillOpacity = 0.8, stroke = FALSE, 
+    label = ~paste("Centro cercano:", Cercano)  # Etiquetas mostrando el centro más cercano
+  ) %>%
+  
+  # Añadir una leyenda
+  addLegend(
+    "bottomright", 
+    colors = c("red", "blue", "green"), 
+    labels = c("Garin", "Pablo Nogues", "Tortuguitas"), 
+    title = "Centro más cercano"
+  )
+
+# Mostrar el mapa
+mapa_ultimas
+```
+
+Visualizar las primeras y ultimas entregas realizadas cada día puede arrojar información importante acerca del enfoque que toma la empresa a la hora de planear las rutas para sus envíos. Nuestro primer instinto sería que, o las primeras o las ultimas entregas sean aquellas más cercanas al centro de distribución de donde está siendo despachado el camión, para así no tener que volver innecesariamente sobre sus propios pasos. Sin embargo, ambos mapas nos demuestran que tanto las primeras como las últimas entregas están más bien dispersadas a los largo del mapa, sin mostrar ninguna concentración en específico alrededor de los centros de distribución
+
+### Mapeo de una ruta aproximada
+
+```{r}
+
+library(leaflet)
+library(dplyr)
+library(sf)
+
+# Convertir las columnas de fecha y hora a los formatos adecuados
+df <- df %>%
+  mutate(
+    VisitaPlanificadaFecha = as.Date(VisitaPlanificadaFecha, format="%Y-%m-%d"),
+    VisitaHora_Inicio = as.POSIXct(VisitaHora_Inicio, format="%H:%M:%S")
+  )
+
+# Seleccionar las entregas de un día específico 
+df_dia <- df %>%
+  filter(VisitaPlanificadaFecha == as.Date("2024-07-12")) %>%  
+  arrange(VisitaHora_Inicio)  # Ordenar por la hora de inicio de la visita
+
+# Añadir un orden a las entregas
+df_dia <- df_dia %>%
+  mutate(orden = row_number())
+
+# Convertir el dataframe a objeto sf (simple features) para manejar las coordenadas
+df_sf <- st_as_sf(df_dia, coords = c("longitud", "latitud"), crs = 4326)
+
+df_dia$longitud <- as.numeric(df_dia$longitud)
+
+# Crear el mapa en leaflet
+mapa_ruteo <- leaflet(df_dia) %>%
+  # Establecer la vista centrada en la ubicación promedio
+  setView(lng = -58.5, lat = -34.6, zoom = 10) %>%
+  
+  # Añadir el mapa base de OpenStreetMap
+  addTiles() %>%
+  
+  # Añadir los puntos de entrega numerados
+  addCircleMarkers(
+    ~longitud, ~latitud, 
+    radius = 5, fillOpacity = 1, stroke = FALSE, 
+    label = ~paste("Entrega:", orden),  # Mostrar el número de entrega al pasar el mouse
+    popup = ~paste("Entrega #", orden, "<br>Hora:", VisitaHora_Inicio)
+  ) %>%
+  
+  # Conectar los puntos en orden de entrega con una línea
+  addPolylines(
+    lng = ~longitud, lat = ~latitud, 
+    color = "blue", weight = 2, 
+    popup = "Ruta de entregas"
+  )
+
+# Mostrar el mapa
+mapa_ruteo
+
+```
+
+Graficamos sobre el mapa las entregas realizadas durante un día de trabajo, de esta manera podemos apreciar laz zonas aproximadas que recorren los camiones de la empresa y también las conexiones del orden en el que lo realizan. Podemos inferir en el caso de este día que se trata de dos o mas vehiculos con rutas bien marcadas pues uno parecería barcar la zona norte de los alrededores de la Ciudad de Buenos Aires, mientras que el otro u otros se concentran mayormente en CABA.
+La empresa podría beneficiarse ampliamente de aplicar un trackeo mas intesivo de sus vehiculos, identificando que camión y conductor lleva a cabo cada entrega, para así ser capaces también de detectar tendencias o patrones entre sus rutas.
+
+#### Añadimos las rutas reales para las primeras 50 entregas de este dia
+
+```{r}
+
+# Primeras 50 entregas del día
+df_dia2 <- head(df_dia, 50)
+
+# Obtener rutas reales entre las entregas
+rutas <- list()
+
+# Iterar para obtener las rutas entre cada par de entregas consecutivas
+for (i in 1:(nrow(df_dia2) - 1)) {
+  # Origen y destino para cada ruta
+  origen <- df_dia2[i, c("longitud", "latitud")]
+  destino <- df_dia2[i + 1, c("longitud", "latitud")]
+  
+  # Obtener la ruta entre el origen y destino
+  ruta <- osrmRoute(src = origen, dst = destino)
+  rutas[[i]] <- ruta  # Guardamos cada ruta
+}
+
+# Crear el mapa con leaflet
+mapa_50 <- leaflet() %>%
+  addTiles() %>%  # Añadir mapa base
+  setView(lng = -58.5, lat = -34.6, zoom = 10)
+
+# Añadir los puntos de entrega al mapa, numerados
+for (i in 1:nrow(df_dia2)) {
+  mapa_50 <- mapa_50 %>%
+    addCircleMarkers(
+      lng = df_dia2$longitud[i],
+      lat = df_dia2$latitud[i],
+      label = as.character(df_dia2$orden[i]),
+      color = "blue",
+      radius = 5,
+      fillOpacity = 0.8,
+      popup = paste("Entrega:", df_dia2$orden[i],
+                    "<br> Hora:", df_dia2$VisitaHora_Inicio[i])
+    )
+}
+
+# Añadir las rutas reales al mapa
+for (i in 1:length(rutas)) {
+  mapa_50 <- mapa_50 %>%
+    addPolylines(data = rutas[[i]], color = "purple", weight = 2)
+}
+
+# Mostrar el mapa
+mapa_50
+
+
+```
+
+Con la ayuda de la libreria OSRM anteriormente mencionada, tomamos una muestra de las entregas realizadas este dia, en este caso las primeras 50 entregas, y trazamos la rutas reales que se habrían tomado teniendo en cuenta la dispisición urbana y geográfica de las direcciones y también los horarios en los que cada entrega llegó a su destino. 
+
+La característica de la opacidad de las rutas permite reconocer que calles y trayectos han sido tomados con mayor frecuencia por los conductores, esto puede ayudar a la empresa a identificar posibles mejoras o a evitar embolletamientos o calles con demasiado tráfico, proponiendo rutas alternativas.
+
+
+## Prediccion de la ruta optima
+
+```{r}
+df_dias <- head(df_dia2,10)
+
+# Definir la hora de inicio
+hora_inicio <- as.POSIXct("2024-10-24 08:00:00", tz = "UTC")
+
+# Crear matriz de distancias
+n <- nrow(df_dias)
+dist_matrix <- matrix(NA, nrow = n, ncol = n)
+
+for (i in 1:n) {
+  for (j in 1:n) {
+    if (i != j) {
+      origen <- c(df_dias$longitud[i], df_dias$latitud[i])
+      destino <- c(df_dias$longitud[j], df_dias$latitud[j])
+      ruta <- osrmRoute(src = origen, dst = destino, overview = FALSE)
+      dist_matrix[i, j] <- ruta[1]  # Convertir a minutos
+    }
+  }
+}
+
+# Algoritmo del vecino más cercano
+orden_entregas <- c(1)  # Comenzar desde la primera entrega
+visitados <- rep(FALSE, n)
+visitados[1] <- TRUE
+
+for (i in 2:n) {
+  # Encontrar el vecino más cercano
+  ultimo <- orden_entregas[length(orden_entregas)]
+  siguiente <- which.min(dist_matrix[ultimo, !visitados])
+  orden_entregas <- c(orden_entregas, which(!visitados)[siguiente])
+  visitados[orden_entregas[length(orden_entregas)]] <- TRUE
+}
+
+# Calcular Hora de Llegada
+df_dias$Hora_Llegada <- NA
+tiempo_acumulado <- 0
+
+for (i in seq_along(orden_entregas)) {
+  entrega_actual <- orden_entregas[i]
+  
+  if (i == 1) {
+    df_dias$Hora_Llegada[entrega_actual] <- hora_inicio
+  } else {
+    origen <- orden_entregas[i - 1]
+    tiempo_acumulado <- tiempo_acumulado + dist_matrix[origen, entrega_actual] + 10  # Añadir 10 minutos por entrega
+    df_dias$Hora_Llegada[entrega_actual] <- hora_inicio + lubridate::duration(minutes = tiempo_acumulado)
+  }
+}
+
+for (i in seq_along(orden_entregas)) {
+  entrega_actual <- orden_entregas[i]
+  
+  if (i == 1) {
+    df_dias$Hora_Llegada[entrega_actual] <- hora_inicio
+  } else {
+    origen <- orden_entregas[i - 1]
+    tiempo_acumulado <- tiempo_acumulado + dist_matrix[origen, entrega_actual] + 10  # Añadir 10 minutos por entrega
+    df_dias$Hora_Llegada[entrega_actual] <- hora_inicio + lubridate::duration(minutes = tiempo_acumulado)
+  }
+}
+
+df_dias$Hora_Llegada <- as.POSIXct(df_dias$Hora_Llegada, tz = "UTC-3")
+
+# Convertir Hora_Llegada a formato HH:MM
+df_dias$Hora_Llegada <- format(df_dias$Hora_Llegada, "%H:%M")
+
+# Mostrar el dataframe con el nuevo orden y horas de llegada
+df_dias <- df_dias[orden_entregas, ]  # Reordenar el dataframe
+print(df_dias)
+
+```
+
+Teniendo en cuenta todas las herramientas utilizadas anteriormente en el análisis, creamos un algoritmo con la capacidad para recibir todas las entregas previstas para un día junto con sus coordenadas, trazar la ruta optima teniendo en cuenta las distancias entre estas utilizando el algoritmo de minimización de Vecinos más cercanos con distancia ponderada, y en base a esta ruta estimar las horas de llegadas realistas para cada entrega.
+
+Para esto, el algoritmo genera una matriz de distancias con todas las coordanadas ingresadas y que se calcula en base al trazado urbano de la ciudad, luego ultiliza el algoritmo de minimización mencionado para unir las coordenadas de la manera más eficiente posible. Por último, teniendo en cuenta esta ruta, calcula el tiempo que se tarda de ir desde una dirección a su siguiente, y a esto le suma 10 minutos (promedio del tiempo de permanencia del vehiculo en cada entrega) y el tiempo acumulado a los largo de las entregas anteriores, para devolver la hora estimada en la que cada pedido llegará a su destino.
+
+```{r}
+df_dias <- df_dias %>%
+  mutate(orden = row_number())
+
+# Convertir el dataframe a objeto sf (simple features) para manejar las coordenadas
+df_sf <- st_as_sf(df_dias, coords = c("longitud", "latitud"), crs = 4326)
+
+df_dias$longitud <- as.numeric(df_dias$longitud)
+
+# Obtener rutas reales entre las entregas
+rutas_optimas <- list()
+
+# Iterar para obtener las rutas entre cada par de entregas consecutivas
+for (i in 1:(nrow(df_dias) - 1)) {
+  # Origen y destino para cada ruta
+  origen <- df_dias[i, c("longitud", "latitud")]
+  destino <- df_dias[i + 1, c("longitud", "latitud")]
+  
+  # Obtener la ruta entre el origen y destino
+  ruta1 <- osrmRoute(src = origen, dst = destino)
+  rutas_optimas[[i]] <- ruta1  # Guardamos cada ruta
+}
+
+# Crear el mapa con leaflet
+mapa_optimo <- leaflet() %>%
+  addTiles() %>%  # Añadir mapa base
+  setView(lng = -58.5, lat = -34.6, zoom = 10)
+
+# Añadir los puntos de entrega al mapa, numerados
+for (i in 1:nrow(df_dia2)) {
+  mapa_optimo <- mapa_optimo %>%
+    addCircleMarkers(
+      lng = df_dias$longitud[i],
+      lat = df_dias$latitud[i],
+      color = "blue",
+      radius = 5,
+      fillOpacity = 0.8,
+      popup = paste("Entrega #:", df_dias$orden[i],
+                    "<br> Hora:", df_dias$Hora_Llegada[i])
+    )
+}
+
+# Añadir las rutas reales al mapa
+for (i in 1:9) {
+  mapa_optimo <- mapa_optimo %>%
+    addPolylines(data = rutas_optimas[[i]], color = "red", weight = 2)
+}
+
+# Mostrar el mapa
+mapa_optimo
+```
+
+Esta representación espacial de la ruta otpima calculada con el algoritmo anterior puede facilitar la comprensión de su funcionamiento. Aplicado a mayor escala y con un clustering geográfico de por medio, este algoritmo podría calcular automaticamente y de la manera más eficiente la ruta para cada camión, cada día de trabajo
+
+## Conclusión
+
+El análisis espacial realizado sobre los datos de iFlow permitió identificar patrones clave en la distribución geográfica de las entregas y en la eficiencia de las rutas. Se observó que ciertas áreas presentan mayores concentraciones de entregas, lo que sugiere la necesidad de ajustar las rutas para reducir tiempos de desplazamiento y mejorar la eficiencia en zonas de alta densidad de pedidos. Además, se detectaron variaciones significativas en los tiempos de entrega en función de la localización geográfica, lo que indica que las entregas en zonas periféricas tienden a acumular demoras.
+
+Implementar rutas optimizadas para estas áreas específicas y asignar recursos adicionales en horarios críticos podría minimizar los retrasos y mejorar la puntualidad de las entregas en iFlow. Los hallazgos de este análisis brindan una base sólida para ajustes estratégicos en la planificación de rutas, contribuyendo tanto a la reducción de costos operativos como a una mayor satisfacción del cliente.
+

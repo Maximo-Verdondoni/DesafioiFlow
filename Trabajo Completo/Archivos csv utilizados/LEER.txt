@@ -1,0 +1,2 @@
+El csv iFlowDatos_Limpios.csv es el csv limpio y depurado resultante de la limpieza realizada
+al dataset original.
